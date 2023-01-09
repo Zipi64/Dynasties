@@ -1,5 +1,8 @@
-import pygame
 import os
+import sys
+
+import pygame
+
 pygame.init()
 screen = pygame.display.set_mode((800, 640)) # Размеры окна
 pygame.display.set_caption("Dynasties")
@@ -11,9 +14,15 @@ FPS = 60
 # Состояние перемещения игрока
 move_right = False
 move_left = False
+move_up = False
 
 background = (144, 201, 200)
 # Риосвание заднего фона
+
+STAY = "Player/Idle/Idle-Sheet.png"
+MOVE = "Player/Run/Run-Sheet.png"
+JUMP = "Player/Jump-All/Jump-All-Sheet.png"
+
 def draw_background():
 	screen.fill(background)
 
@@ -28,16 +37,18 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     return image
+
 # Класс игрока
 class Player(pygame.sprite.Sprite):
 	def __init__(self, type, x, y, speed, scale):
 		pygame.sprite.Sprite.__init__(self)
 		self.animation = "stay"
-		self.cut_sheet(load_image("Player/Idle/Idle-Sheet.png"), 4, 1)
+		self.stay_animation()
 		self.type = type
 		self.speed = speed
 		self.direction = 1
 		self.rotation = False
+		self.jumping = False
 		character_img = pygame.image.load(f'data/{type}/Idle/Idle.gif')
 		self.image = pygame.transform.scale(character_img, (int(character_img.get_width() * scale), (int(character_img.get_height() * scale))))
 		self.rect = self.image.get_rect()
@@ -47,6 +58,9 @@ class Player(pygame.sprite.Sprite):
 	# Рисование персонажа и его поворот
 	def draw(self):
 		screen.blit(pygame.transform.flip(self.image, self.rotation, False), self.rect)
+	
+	def stay_animation(self):
+		self.cut_sheet(load_image(STAY), 4, 1)
     
 	# Движение персонжа
 	def move(self, move_left, move_right):
@@ -87,7 +101,11 @@ class Player(pygame.sprite.Sprite):
 		self.counter = 0
 		self.cur_frame = (self.cur_frame + 1) % len(self.frames)
 		self.image = self.frames[self.cur_frame]
-		print(self.cur_frame)
+		if self.jumping and self.cur_frame == 14:
+			self.jumping = False
+			self.animation = "stay"
+			self.stay_animation()
+			return
 		
 
 
@@ -113,6 +131,9 @@ while running:
 				move_left = True
 			if event.key == pygame.K_d:
 				move_right = True #  Перемещение вправо
+			if event.key == pygame.K_SPACE:
+				move_up = True
+				player.jumping = True
 		
 		# Кнопка отпущена
 		if event.type == pygame.KEYUP:
@@ -120,18 +141,23 @@ while running:
 				move_left = False
 			if event.key == pygame.K_d:
 				move_right = False #  Перемещение вправо
+			if event.key == pygame.K_SPACE:
+				move_up = False
 			if event.key == pygame.K_ESCAPE: # Закрытие игры по клавише ESC
 				running = False 
-		
-		if move_left or move_right:
+		if move_up or player.jumping:
+			if not player.animation == "jump":
+				player.cut_sheet(load_image(JUMP), 15, 1)
+				player.animation = "jump"
+
+		elif move_left or move_right:
 			if not player.animation == "moving":
-				player.cut_sheet(load_image("Player/Run/Run-Sheet.png"), 8, 1)
+				player.cut_sheet(load_image(MOVE), 8, 1)
 				player.animation = "moving"
 		else:
 			if not player.animation == "stay":
-				player.cut_sheet(load_image("Player/Idle/Idle-Sheet.png"), 4, 1)
+				player.cut_sheet(load_image(STAY), 4, 1)
 				player.animation = "stay"
-
 	player.update()
 	pygame.display.update()
 pygame.quit()
