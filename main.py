@@ -16,13 +16,17 @@ move_right = False
 move_left = False
 move_up = False
 
-background = (144, 201, 200)
 # Риосвание заднего фона
+background = (144, 201, 200)
+
+# Загрузка музыки
+pygame.mixer.music.load('data/audio/main.wav')
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1, 0.0, 5000)
 
 STAY = "Player/Idle/Idle-Sheet.png"
 MOVE = "Player/Run/Run-Sheet.png"
 JUMP = "Player/Jump-All/Jump-All-Sheet.png"
-
 def draw_background():
 	screen.fill(background)
 
@@ -40,17 +44,17 @@ def load_image(name, colorkey=None):
 
 # Класс игрока
 class Player(pygame.sprite.Sprite):
-	def __init__(self, type, x, y, speed, scale):
+	def __init__(self, type, x, y, speed):
 		pygame.sprite.Sprite.__init__(self)
 		self.animation = "stay"
+		self.x = x
+		self.y = y
 		self.stay_animation()
 		self.type = type
 		self.speed = speed
 		self.direction = 1
 		self.rotation = False
 		self.jumping = False
-		character_img = pygame.image.load(f'data/{type}/Idle/Idle.gif')
-		self.image = pygame.transform.scale(character_img, (int(character_img.get_width() * scale), (int(character_img.get_height() * scale))))
 		self.rect = self.image.get_rect()
 		self.rect.center = (x , y)
 	
@@ -71,14 +75,14 @@ class Player(pygame.sprite.Sprite):
 			dx = self.speed
 			self.rotation = False
 			self.direction = 1
-		if move_left:
+		if move_left and self.x > 5:
 			dx = -self.speed
 			self.rotation = True
 			self.direction = -1
 		# Движение персонажа
 		self.rect.x += dx
 		self.rect.y += dy
-
+	
 	# Вырезание анимации 
 	def cut_sheet(self, sheet, columns, rows):
 		self.counter = 0
@@ -112,8 +116,7 @@ class Player(pygame.sprite.Sprite):
 
 
 # Создание игрока
-# mob = Player('Mob', 250, 250, 5, 1.5) # доделать картинки с мобом
-player = Player('Player', 250, 250, 5, 1.5)
+player = Player('Player', 50, 600, 5)
 # Игровой цикл
 running = True
 while running:
