@@ -10,4 +10,5 @@ For installation '''
 > Move forward - D \
 > Move back - A \
 > Jump - Space
+> Hit - LMB
 
