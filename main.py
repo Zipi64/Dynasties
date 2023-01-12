@@ -30,6 +30,7 @@ STAY = "Player/Idle/Idle-Sheet.png"
 MOVE = "Player/Run/Run-Sheet.png"
 JUMP = "Player/Jump-All/Jump-All-Sheet.png"
 ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
+DEATH = "Player/Dead/Dead-Sheet.png"
 
 # Рисование заднего фона
 def draw_background():
@@ -63,9 +64,21 @@ class Player(pygame.sprite.Sprite):
 		self.jumping = False
 		self.jump_count = 0
 		self.hitting = False
-		self.hitpoint = (x + 1, x + 5, y + 1, y + 5)
+		self.attack_range = {
+			"x1": x,
+			"x2": x + 50,
+			"y1": y - 25,
+			"y2": y + 25
+		}
+		self.hitbocks = {
+			"top": (x - 10, y - 25),
+			"bottom": (x + 10, y + 25) 
+		}
 		self.rect = self.image.get_rect()
 		self.rect.center = (x , y)
+		self.alive = True
+		self.last_animation = False
+
 	
 		
 	# Рисование персонажа и его поворот
@@ -123,10 +136,10 @@ class Player(pygame.sprite.Sprite):
 		self.cur_frame = (self.cur_frame + 1) % len(self.frames)
 		self.image = self.frames[self.cur_frame]
 
+
 		if self.hitting and self.cur_frame == 7:  # Если атака
 			self.hitting = False
 			self.stay_animation()
-			
 
 		if self.jumping and self.cur_frame == 14:  # Если прыжок
 			self.jumping = False
@@ -137,11 +150,11 @@ class Player(pygame.sprite.Sprite):
 		if self.jumping:
 			self.jump_count += 1
 		
-
 # Создание игрока
 player = Player('Player', 50, 600, 5)
 # Игровой цикл
 running = True
+
 while running:
 	draw_background()
 	clock.tick(FPS) # Установка FPS
@@ -162,6 +175,9 @@ while running:
 					move_up = True
 					player.jumping = True
 					
+			if event.key == pygame.K_p:  # Кнопка для смерти
+				player.alive = False
+				player.rect.y += 15
 		
 		# Кнопка отпущена
 		if event.type == pygame.KEYUP:
@@ -183,7 +199,11 @@ while running:
 			if event.button == 1:
 				hit = False
 
-		if (move_up or player.jumping):
+		if not player.alive:
+			player.cut_sheet(load_image(DEATH), 8, 1)
+			player.animation = "death"
+
+		elif (move_up or player.jumping):
 			if not player.animation == "jump":
 				player.cut_sheet(load_image(JUMP), 15, 1)
 				player.animation = "jump"
@@ -201,6 +221,10 @@ while running:
 			if not player.animation == "stay":
 				player.cut_sheet(load_image(STAY), 4, 1)
 				player.animation = "stay"
-	player.update()
-	pygame.display.update()
+			
+	if (not player.alive and player.cur_frame <= 7 and not player.last_animation) or player.alive: # Огромная проверка на то, жив чел или нет
+		if player.cur_frame == 7:
+			player.last_animation = True
+		player.update()
+		pygame.display.update()
 pygame.quit()
