@@ -9,6 +9,7 @@ For installation '''
 ## Сontrol ⌨
 > Move forward - D \
 > Move back - A \
-> Jump - Space
-> Hit - LMB
-
+> Jump - Space \
+> Hit - LMB \
+>Exit - ESC \
+> Fullscreen mode - F11

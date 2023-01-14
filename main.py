@@ -1,11 +1,19 @@
 import os
 import sys
-
 import pygame
+from pygame import *
 
+pygame.font.init()
 pygame.init()
-screen = pygame.display.set_mode((800, 640)) # Размеры окна
+screen = pygame.display.set_mode((800, 640))
 pygame.display.set_caption("Dynasties")
+
+# Полноэкранный режим
+current_size = screen.get_size() # Текущее разрешение
+display_info = pygame.display.Info() # Максимальное разрешение
+fullscreen_size = (display_info.current_w, display_info.current_h) # Кортеж разрешения экрана
+is_fullscreen = False # Проверка на полноэкранный режим
+last_size = current_size
 
 # Часы
 clock = pygame.time.Clock()
@@ -16,6 +24,7 @@ move_right = False
 move_left = False
 move_up = False
 hit = False
+coins = 0 # Количество собранных монет
 
 # Риосвание заднего фона
 background = (144, 201, 200)
@@ -78,8 +87,6 @@ class Player(pygame.sprite.Sprite):
 		self.rect.center = (x , y)
 		self.alive = True
 		self.last_animation = False
-
-	
 		
 	# Рисование персонажа и его поворот
 	def draw(self):
@@ -149,12 +156,12 @@ class Player(pygame.sprite.Sprite):
 			return
 		if self.jumping:
 			self.jump_count += 1
-		
+
 # Создание игрока
 player = Player('Player', 50, 600, 5)
-# Игровой цикл
-running = True
 
+# -------- Основной игровой цикл -----------
+running = True
 while running:
 	draw_background()
 	clock.tick(FPS) # Установка FPS
@@ -164,16 +171,27 @@ while running:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:  # Закрытие окна
 			running = False
+		elif event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_F11: # Полноэкранный режим на F11
+				is_fullscreen = not is_fullscreen
+				if is_fullscreen:
+					last_size = current_size
+					current_size = fullscreen_size
+					screen = pygame.display.set_mode(current_size, FULLSCREEN)
+				else:
+					current_size = last_size
+					screen = pygame.display.set_mode(current_size, RESIZABLE)
+					screen = pygame.display.set_mode(current_size, RESIZABLE) # Решение бага с полноэкранным режимом
+
 		# Кнопка нажата
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_a:  # Перемещение влево
 				move_left = True
 			if event.key == pygame.K_d:  # Перемещение вправо
-				move_right = True 
-			if event.key == pygame.K_SPACE:
-				if not (hit or player.hitting):
-					move_up = True
-					player.jumping = True
+				move_right = True
+			if event.key == pygame.K_SPACE and not hit and not player.hitting:
+				move_up = True
+				player.jumping = True
 					
 			if event.key == pygame.K_p:  # Кнопка для смерти
 				player.alive = False
@@ -190,14 +208,17 @@ while running:
 			if event.key == pygame.K_ESCAPE:  # Закрытие игры по клавише ESC
 				running = False 
 		
-		if event.type == pygame.MOUSEBUTTONDOWN:  # Нажатие на кнопку мыши
-			if event.button == 1 and not (move_up or player.jumping):
-				hit = True
-				player.hitting = True
-		
-		if event.type == pygame.MOUSEBUTTONUP:  # Отпускание кнопки мыши
-			if event.button == 1:
-				hit = False
+		if (
+			event.type == pygame.MOUSEBUTTONDOWN # Кнопка нажата
+			and event.button == 1
+			and not move_up
+			and not player.jumping
+		):
+			hit = True
+			player.hitting = True
+
+		if event.type == pygame.MOUSEBUTTONUP and event.button == 1: # Кнопка отпущена 
+			hit = False
 
 		if not player.alive:
 			player.cut_sheet(load_image(DEATH), 8, 1)
