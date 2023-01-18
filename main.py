@@ -5,7 +5,8 @@ from pygame import *
 
 pygame.font.init()
 pygame.init()
-screen = pygame.display.set_mode((800, 640))
+size =  width, height = 950, 600
+screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Dynasties")
 
 # Полноэкранный режим
@@ -27,8 +28,7 @@ hit = False
 coins = 0 # Количество собранных монет
 
 # Риосвание заднего фона
-background = (144, 201, 200)
-
+background_image = pygame.image.load('data/background/background.png')
 # Загрузка музыки
 pygame.mixer.music.load('data/audio/main.wav')
 pygame.mixer.music.set_volume(0.5)
@@ -43,7 +43,33 @@ DEATH = "Player/Dead/Dead-Sheet.png"
 
 # Рисование заднего фона
 def draw_background():
-	screen.fill(background)
+	screen.blit(background_image, (0, 0))
+
+# Печать текста на экран
+def print_text(message, x, y, font_color=(0, 0, 0), font_type='pingpong.ttf', font_size=30):
+	font_type = pygame.font.Font(font_type, font_size)
+	text = font_type.render(message, True, font_color)
+	screen.blit(text, (x, y))
+
+# Игра закончена
+def game_over():
+	game_over = True
+	while game_over:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:  # Закрытие окна
+				pygame.quit()
+				quit()
+			#if event.type == pygame.KEYUP:
+			#	if event.key == pygame.K_r:
+					# Тут будет рестарт
+		print_text('YOU DIED! Press R to restart or ESC to exit.', 175, 250)
+		player.cut_sheet(load_image(DEATH), 8, 1)
+		player.animation = "death"
+		keys = pygame.key.get_pressed()
+		if keys[pygame.K_ESCAPE]:
+			game_over = False
+		display.update()
+		clock.tick(60)
 
 # Загрузка изображений
 def load_image(name, colorkey=None):
@@ -158,15 +184,14 @@ class Player(pygame.sprite.Sprite):
 			self.jump_count += 1
 
 # Создание игрока
-player = Player('Player', 50, 600, 5)
+player = Player('Player', 20, 525, 5)
 
 # -------- Основной игровой цикл -----------
 running = True
 while running:
-	draw_background()
 	clock.tick(FPS) # Установка FPS
+	draw_background()
 	player.draw() # Рисование персонажа
-	#mob.draw()
 	player.move(move_left, move_right)  # Передвижение персонажа
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:  # Закрытие окна
@@ -221,8 +246,8 @@ while running:
 			hit = False
 
 		if not player.alive:
-			player.cut_sheet(load_image(DEATH), 8, 1)
-			player.animation = "death"
+			game_over()
+
 
 		elif (move_up or player.jumping):
 			if not player.animation == "jump":
