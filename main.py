@@ -27,20 +27,34 @@ move_up = False
 hit = False
 coins = 0 # Количество собранных монет
 
+GAMEOVER = False
+
 # Риосвание заднего фона
 background_image = pygame.image.load('data/background/background.png')
 # Загрузка музыки
-
+'''
 pygame.mixer.music.load('data/audio/main.wav')
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 5000)
-
+'''
 # Расположение анимаций
 STAY = "Player/Idle/Idle-Sheet.png"
 MOVE = "Player/Run/Run-Sheet.png"
 JUMP = "Player/Jump-All/Jump-All-Sheet.png"
 ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
 DEATH = "Player/Dead/Dead-Sheet.png"
+
+def default_values():  # Дефолтные значения(обновляются после смерти)
+	global GAMEOVER, move_right, move_left, move_up, hit, coins, player
+	GAMEOVER = False
+	move_right = False
+	move_left = False
+	move_up = False
+	hit = False
+	coins = 0 # Количество собранных монет
+	player = Player('Player', 20, 525, 5)
+
+
 
 # Рисование заднего фона
 def draw_background():
@@ -54,21 +68,20 @@ def print_text(message, x, y, font_color=(0, 0, 0), font_type='pingpong.ttf', fo
 
 # Игра закончена
 def game_over():
-	game_over = True
-	while game_over:
+	global GAMEOVER
+	GAMEOVER = True
+	while GAMEOVER:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:  # Закрытие окна
 				pygame.quit()
 				quit()
 			if event.type == pygame.KEYUP:
-				if event.key == pygame.K_r:
-					...
+				if event.key == pygame.K_r:  # Перезапуск игры
+					default_values()
 		print_text('YOU DIED! Press R to restart or ESC to exit.', 175, 250)
-		player.cut_sheet(load_image(DEATH), 8, 1)
-		player.animation = "death"
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_ESCAPE]:
-			game_over = False
+			GAMEOVER = False
 		display.update()
 		clock.tick(60)
 
@@ -190,7 +203,6 @@ player = Player('Player', 20, 525, 5)
 
 # -------- Основной игровой цикл -----------
 running = True
-
 
 while running:
 	clock.tick(FPS) # Установка FPS
