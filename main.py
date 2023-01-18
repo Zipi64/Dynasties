@@ -30,6 +30,7 @@ coins = 0 # Количество собранных монет
 # Риосвание заднего фона
 background_image = pygame.image.load('data/background/background.png')
 # Загрузка музыки
+
 pygame.mixer.music.load('data/audio/main.wav')
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 5000)
@@ -59,9 +60,9 @@ def game_over():
 			if event.type == pygame.QUIT:  # Закрытие окна
 				pygame.quit()
 				quit()
-			#if event.type == pygame.KEYUP:
-			#	if event.key == pygame.K_r:
-					# Тут будет рестарт
+			if event.type == pygame.KEYUP:
+				if event.key == pygame.K_r:
+					...
 		print_text('YOU DIED! Press R to restart or ESC to exit.', 175, 250)
 		player.cut_sheet(load_image(DEATH), 8, 1)
 		player.animation = "death"
@@ -125,7 +126,8 @@ class Player(pygame.sprite.Sprite):
     
 	# Движение персонжа
 	def move(self, move_left, move_right):
-		# Изменение положение персонажа
+		if not self.alive:
+			return
 		dx = 0
 		dy = 0
 		if move_right:
@@ -188,6 +190,8 @@ player = Player('Player', 20, 525, 5)
 
 # -------- Основной игровой цикл -----------
 running = True
+
+
 while running:
 	clock.tick(FPS) # Установка FPS
 	draw_background()
@@ -246,9 +250,10 @@ while running:
 			hit = False
 
 		if not player.alive:
-			game_over()
-
-
+			if not player.animation == "death":
+				player.cut_sheet(load_image(DEATH), 8, 1)
+				player.animation = "death"
+		
 		elif (move_up or player.jumping):
 			if not player.animation == "jump":
 				player.cut_sheet(load_image(JUMP), 15, 1)
@@ -271,6 +276,7 @@ while running:
 	if (not player.alive and player.cur_frame <= 7 and not player.last_animation) or player.alive: # Огромная проверка на то, жив чел или нет
 		if player.cur_frame == 7:
 			player.last_animation = True
+			game_over()
 		player.update()
 		pygame.display.update()
 pygame.quit()
