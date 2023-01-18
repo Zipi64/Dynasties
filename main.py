@@ -203,8 +203,10 @@ player = Player('Player', 20, 525, 5)
 
 # -------- Основной игровой цикл -----------
 running = True
-
+i = 0
 while running:
+	i += 1
+	print(i, player.alive)
 	clock.tick(FPS) # Установка FPS
 	draw_background()
 	player.draw() # Рисование персонажа
@@ -286,7 +288,7 @@ while running:
 				player.animation = "stay"
 			
 	if (not player.alive and player.cur_frame <= 7 and not player.last_animation) or player.alive: # Огромная проверка на то, жив чел или нет
-		if player.cur_frame == 7:
+		if player.cur_frame == 7 and not player.alive:
 			player.last_animation = True
 			game_over()
 		player.update()
