@@ -167,11 +167,23 @@ class Player(pygame.sprite.Sprite):
 		# Движение персонажа
 		if self.jumping:
 			if self.jump_count <= 6:
-				dy = -1
+				dy = -2
 			else:
-				dy = 1
+				dy = 2
 		self.rect.x += dx
 		self.rect.y += dy
+		x = self.rect.x
+		y = self.rect.y
+		self.attack_range = {
+			"x1": x,
+			"x2": x + 50,
+			"y1": y - 25,
+			"y2": y + 25
+		}
+		self.hitbocks = {
+			"top": (x - 10, y - 25),
+			"bottom": (x + 10, y + 25) 
+		}
 	
 	# Вырезание анимации 
 	def cut_sheet(self, sheet, columns, rows):
@@ -205,7 +217,7 @@ class Player(pygame.sprite.Sprite):
 		if self.jumping and self.cur_frame == 14:  # Если прыжок
 			self.jumping = False
 			self.jump_count = 0
-			self.rect.y -= 1
+			self.rect.y -= 2
 			self.stay_animation()
 			return
 		if self.jumping:
@@ -216,10 +228,7 @@ player = Player('Player', 20, 525, 5)
 
 # -------- Основной игровой цикл -----------
 running = True
-i = 0
 while running:
-	i += 1
-	print(i, player.alive)
 	clock.tick(FPS) # Установка FPS
 	draw_background()
 	player.draw() # Рисование персонажа
