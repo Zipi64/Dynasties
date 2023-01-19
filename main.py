@@ -2,6 +2,7 @@ import os
 import sys
 import pygame
 from pygame import *
+import pygame_widgets
 
 pygame.font.init()
 pygame.init()
@@ -44,6 +45,20 @@ JUMP = "Player/Jump-All/Jump-All-Sheet.png"
 ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
 DEATH = "Player/Dead/Dead-Sheet.png"
 
+def show_menu():
+	menu_background = pygame.image.load('data/menu/menu.png')
+	new_game_button = pygame_widgets.Button(300, 70)
+
+	menu = True
+	while menu:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+		screen.blit(menu_background, (0, 0))
+
+
+
 def default_values():  # Дефолтные значения(обновляются после смерти)
 	global GAMEOVER, move_right, move_left, move_up, hit, coins, player
 	GAMEOVER = False
@@ -53,8 +68,6 @@ def default_values():  # Дефолтные значения(обновляют�
 	hit = False
 	coins = 0 # Количество собранных монет
 	player = Player('Player', 20, 525, 5)
-
-
 
 # Рисование заднего фона
 def draw_background():
