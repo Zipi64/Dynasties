@@ -32,12 +32,7 @@ GAMEOVER = False
 
 # Риосвание заднего фона
 background_image = pygame.image.load('data/background/background.png')
-# Загрузка музыки
-'''
-pygame.mixer.music.load('data/audio/main.wav')
-pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1, 0.0, 5000)
-'''
+
 # Расположение анимаций
 STAY = "Player/Idle/Idle-Sheet.png"
 MOVE = "Player/Run/Run-Sheet.png"
@@ -46,8 +41,13 @@ ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
 DEATH = "Player/Dead/Dead-Sheet.png"
 
 def show_menu():
+	pygame.mixer.music.load('data/audio/menu.wav')
+	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.play(-1, 0.0, 5000)
 	menu_background = pygame.image.load('data/menu/menu.png')
-	new_game_button = pygame_widgets.Button(300, 70)
+	button_new_game = Button(300, 70)
+	button_credits = Button(300, 70)
+	button_exit = Button(300, 70)
 
 	menu = True
 	while menu:
@@ -56,10 +56,18 @@ def show_menu():
 				pygame.quit()
 				quit()
 		screen.blit(menu_background, (0, 0))
-
+		button_new_game.draw(325, 120, 'New game', None, 60)
+		button_credits.draw(325, 250, 'Credits', None, 60)
+		button_exit.draw(325, 380, 'Exit', pygame.quit , 60)
+		pygame.display.update()
+		clock.tick(60)
 
 
 def default_values():  # Дефолтные значения(обновляются после смерти)
+	# Загрузка музыки в игре
+	pygame.mixer.music.load('data/audio/main.wav')
+	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.play(-1, 0.0, 5000)
 	global GAMEOVER, move_right, move_left, move_up, hit, coins, player
 	GAMEOVER = False
 	move_right = False
@@ -81,6 +89,7 @@ def print_text(message, x, y, font_color=(0, 0, 0), font_type='pingpong.ttf', fo
 
 # Игра закончена
 def game_over():
+	pygame.mixer.music.stop() # Прекращение музыки после смерти :(
 	global GAMEOVER
 	GAMEOVER = True
 	while GAMEOVER:
@@ -110,6 +119,33 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     return image
+
+
+# Класс кнопки
+class Button:
+	def __init__(self, width, height) -> None:
+		self.width = width
+		self.height = height
+		self.inactive_color = (13, 162, 58)
+		self.active_color = (23, 204, 58)
+	
+	def draw(self, x, y, message, action=None, font_size=30):
+		mouse = pygame.mouse.get_pos()
+		is_click = pygame.mouse.get_pressed()
+
+		# Подсвечивание кнопки
+		if x < mouse[0] < x + self.width:
+			if y < mouse[1] < y + self.height:
+				pygame.draw.rect(screen, self.active_color, (x, y, self.width, self.height))
+
+				if is_click[0] == 1:
+					if action is not None:
+						action()
+		else:
+			pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
+		
+		print_text(message=message, x=x + 10, y=y + 10, font_size=font_size)
+
 
 # Класс игрока
 class Player(pygame.sprite.Sprite):
@@ -225,10 +261,11 @@ class Player(pygame.sprite.Sprite):
 
 # Создание игрока
 player = Player('Player', 20, 525, 5)
-
+show_menu()
 # -------- Основной игровой цикл -----------
 running = True
 while running:
+	# Кнопка рандомная для теста
 	clock.tick(FPS) # Установка FPS
 	draw_background()
 	player.draw() # Рисование персонажа
