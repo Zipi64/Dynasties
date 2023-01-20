@@ -87,7 +87,7 @@ def show_menu():
 
 
 def default_values():  # Дефолтные значения(обновляются после смерти)
-	global GAMEOVER, move_right, move_left, move_up, hit, coins, player
+	global GAMEOVER, move_right, move_left, move_up, hit, coins, player, death_code
 	GAMEOVER = False
 	move_right = False
 	move_left = False
@@ -95,6 +95,10 @@ def default_values():  # Дефолтные значения(обновляют�
 	hit = False
 	coins = 0 # Количество собранных монет
 	player = Player('Player', 20, 525, 5)
+	pygame.mixer.music.load('data/audio/main.wav')
+	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.play(-1, 0.0, 5000)
+	death_code = []
 
 # Рисование заднего фона
 def draw_background():
@@ -108,7 +112,8 @@ def print_text(message, x, y, font_color=(0, 0, 0), font_type='pingpong.ttf', fo
 
 # Игра закончена
 def game_over():
-	pygame.mixer.music.stop() # Прекращение музыки после смерти :(
+	if not death_code == [122, 120, 99]:  # Если не гуль-смерть
+		pygame.mixer.music.stop() # Прекращение музыки после смерти :(
 	global GAMEOVER
 	GAMEOVER = True
 	while GAMEOVER:
@@ -288,6 +293,7 @@ pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 5000)
 # -------- Основной игровой цикл -----------
 running = True
+death_code = []
 while running:
 	# Кнопка рандомная для теста
 	clock.tick(FPS) # Установка FPS
@@ -322,9 +328,28 @@ while running:
 			if event.key == pygame.K_p:  # Кнопка для смерти
 				player.alive = False
 				player.rect.y += 15
+			
 		
 		# Кнопка отпущена
 		if event.type == pygame.KEYUP:
+			if event.key not in [122, 120, 99]: # Чит код на смерть гуля
+				death_code = []
+			else:
+				print(death_code, event.key)
+				if death_code == [] and event.key == 122:
+					death_code.append(event.key)
+				elif death_code == [122] and event.key == 120:
+					death_code.append(event.key)
+				elif death_code == [122, 120] and event.key == 99:
+					death_code.append(event.key)
+					pygame.mixer.music.load('data/audio/zxc.wav')
+					pygame.mixer.music.set_volume(1)
+					pygame.mixer.music.play(-1, 0.0, 5000)
+					player.alive = False
+					player.rect.y += 15
+
+
+
 			if event.key == pygame.K_a:  # Перемещение влево
 				move_left = False
 			if event.key == pygame.K_d:  # Перемещение вправо
