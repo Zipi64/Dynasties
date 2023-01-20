@@ -48,17 +48,39 @@ def show_menu():
 	button_new_game = Button(300, 70)
 	button_credits = Button(300, 70)
 	button_exit = Button(300, 70)
-
+	button_close_credits = Button(300, 70)
 	menu = True
+	credits_menu = False
+	def func_new_game():
+		nonlocal menu
+		menu = False
+
+	def func_close_credits():
+		nonlocal credits_menu
+		credits_menu = False
+
+	def func_open_credits():
+		nonlocal credits_menu
+		credits_menu = True
+
 	while menu:
+		screen.blit(menu_background, (0, 0))
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				quit()
-		screen.blit(menu_background, (0, 0))
-		button_new_game.draw(325, 120, 'New game', None, 60)
-		button_credits.draw(325, 250, 'Credits', None, 60)
-		button_exit.draw(325, 380, 'Exit', pygame.quit , 60)
+		button_new_game.draw(325, 120, 'New game', func_new_game, 60)
+		button_credits.draw(325, 250, 'Credits', func_open_credits, 60)
+		while credits_menu:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					quit()
+			screen.blit(menu_background, (0, 0))
+			button_close_credits.draw(50, 500, "Close", func_close_credits, 60)
+			pygame.display.update()
+			clock.tick(60)
+		button_exit.draw(325, 380, 'Exit', sys.exit , 60)
 		pygame.display.update()
 		clock.tick(60)
 
@@ -259,9 +281,12 @@ class Player(pygame.sprite.Sprite):
 		if self.jumping:
 			self.jump_count += 1
 
+
+
 # Создание игрока
 player = Player('Player', 20, 525, 5)
 show_menu()
+	
 # -------- Основной игровой цикл -----------
 running = True
 while running:
