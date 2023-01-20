@@ -2,7 +2,6 @@ import os
 import sys
 import pygame
 from pygame import *
-import pygame_widgets
 
 pygame.font.init()
 pygame.init()
@@ -78,6 +77,8 @@ def show_menu():
 					quit()
 			screen.blit(menu_background, (0, 0))
 			button_close_credits.draw(50, 500, "Close", func_close_credits, 60)
+			print_text('zzzpize.t.me', 385, 225)
+			print_text('Queeenace', 385, 275)
 			pygame.display.update()
 			clock.tick(60)
 		button_exit.draw(325, 380, 'Exit', sys.exit , 60)
