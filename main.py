@@ -86,10 +86,6 @@ def show_menu():
 
 
 def default_values():  # Дефолтные значения(обновляются после смерти)
-	# Загрузка музыки в игре
-	pygame.mixer.music.load('data/audio/main.wav')
-	pygame.mixer.music.set_volume(0.5)
-	pygame.mixer.music.play(-1, 0.0, 5000)
 	global GAMEOVER, move_right, move_left, move_up, hit, coins, player
 	GAMEOVER = False
 	move_right = False
@@ -284,9 +280,11 @@ class Player(pygame.sprite.Sprite):
 
 
 # Создание игрока
-player = Player('Player', 20, 525, 5)
 show_menu()
-	
+player = Player('Player', 20, 525, 5)
+pygame.mixer.music.load('data/audio/main.wav')
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1, 0.0, 5000)
 # -------- Основной игровой цикл -----------
 running = True
 while running:
