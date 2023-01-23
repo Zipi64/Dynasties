@@ -33,11 +33,21 @@ GAMEOVER = False
 background_image = pygame.image.load('data/background/background.png')
 
 # Расположение анимаций
-STAY = "Player/Idle/Idle-Sheet.png"
-MOVE = "Player/Run/Run-Sheet.png"
-JUMP = "Player/Jump-All/Jump-All-Sheet.png"
-ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
-DEATH = "Player/Dead/Dead-Sheet.png"
+class PlayerAnimations:
+	STAY = "Player/Idle/Idle-Sheet.png"
+	MOVE = "Player/Run/Run-Sheet.png"
+	JUMP = "Player/Jump-All/Jump-All-Sheet.png"
+	ATTACK = "Player/Attack-01/Attack-01-Sheet.png"
+	DEATH = "Player/Dead/Dead-Sheet.png"
+
+
+# Расположение анимаций моба
+class MobAnimations:
+	STAY = "Mob/wizard stay.png"
+	MOVE = "Mob/wizard fly forward.png"
+	ATTACK = "Mob/wizard attack.png"
+	DEATH = "Mob/wizard death.png"
+
 
 def show_menu():
 	pygame.mixer.music.load('data/audio/menu.wav')
@@ -170,6 +180,107 @@ class Button:
 		
 		print_text(message=message, x=x + 10, y=y + 10, font_size=font_size)
 
+# Класс Димона
+class Mob(pygame.sprite.Sprite):
+	def __init__(self, type, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		self.animation = "stay"
+		self.x = x
+		self.y = y
+		self.stay_animation()
+		self.type = type
+		self.speed = 4
+		self.direction = 1
+		self.rotation = False
+		self.hitting = True
+		self.attack_range = {}
+		self.hitbocks = {}
+		self.rect = self.image.get_rect()
+		self.rect.center = (x, y)
+		self.alive = True
+		self.last_animation = False
+
+	# Рисование и поворот Димона
+	def draw(self):
+		screen.blit(pygame.transform.flip(self.image, self.rotation, False), self.rect)
+	
+	# Анимация стояния
+	def stay_animation(self):
+		self.animation = "stay"
+		self.cut_sheet(load_image(MobAnimations.STAY), 4, 3)
+		self.frames[:-2]
+
+	def move(self, move_left, move_right):
+		if not self.alive:
+			return
+		dx = 0
+		dy = 0
+		if move_right:
+			dx = self.speed
+			self.rotation = False
+			self.direction = 1
+		if move_left and self.x > 5:
+			dx = -self.speed
+			self.rotation = True
+			self.direction = -1
+		# Движение персонажа
+		if self.jumping:
+			if self.jump_count <= 6:
+				dy = -2
+			else:
+				dy = 2
+		self.rect.x += dx
+		self.rect.y += dy
+		x = self.rect.x
+		y = self.rect.y
+		self.attack_range = {
+			"x1": x,
+			"x2": x + 50,
+			"y1": y - 25,
+			"y2": y + 25
+		}
+		self.hitbocks = {
+			"top": (x - 10, y - 25),
+			"bottom": (x + 10, y + 25) 
+		}
+
+	def cut_sheet(self, sheet, columns, rows):
+		self.counter = 0
+		self.frames = []
+		self.temprect = pygame.Rect(0, 0, sheet.get_width() // columns, 
+                                sheet.get_height() // rows)
+		for j in range(rows):
+			for i in range(columns):
+				frame_location = (self.temprect.w * i, self.temprect.h * j)
+				self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.temprect.size)))
+		self.cur_frame = 0
+		self.image = self.frames[self.cur_frame]
+
+	def update(self):
+		timings = 5  # Определение, раз в сколько кадров анимация
+		if self.counter != timings:
+			self.counter += 1
+			return
+		self.counter = 0
+		self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+		self.image = self.frames[self.cur_frame]
+
+
+		if self.hitting and self.cur_frame == 7:  # Если атака
+			self.hitting = False
+			self.stay_animation()
+
+		if self.jumping and self.cur_frame == 14:  # Если прыжок
+			self.jumping = False
+			self.jump_count = 0
+			self.rect.y -= 2
+			self.stay_animation()
+			return
+		if self.jumping:
+			self.jump_count += 1
+
+
 
 # Класс игрока
 class Player(pygame.sprite.Sprite):
@@ -208,7 +319,8 @@ class Player(pygame.sprite.Sprite):
 	# Анимация стояния
 	def stay_animation(self):
 		self.animation = "stay"
-		self.cut_sheet(load_image(STAY), 4, 1)
+		self.cut_sheet(load_image(PlayerAnimations.STAY), 4, 1)
+		
     
 	# Движение персонжа
 	def move(self, move_left, move_right):
@@ -373,26 +485,26 @@ while running:
 
 		if not player.alive:
 			if not player.animation == "death":
-				player.cut_sheet(load_image(DEATH), 8, 1)
+				player.cut_sheet(load_image(PlayerAnimations.DEATH), 8, 1)
 				player.animation = "death"
 		
 		elif (move_up or player.jumping):
 			if not player.animation == "jump":
-				player.cut_sheet(load_image(JUMP), 15, 1)
+				player.cut_sheet(load_image(PlayerAnimations.JUMP), 15, 1)
 				player.animation = "jump"
 
 		elif hit or player.hitting:
 			if not player.animation == "attack":
-				player.cut_sheet(load_image(ATTACK), 8, 1)
+				player.cut_sheet(load_image(PlayerAnimations.ATTACK), 8, 1)
 				player.animation = "attack"
 
 		elif move_left or move_right:
 			if not player.animation == "moving":
-				player.cut_sheet(load_image(MOVE), 8, 1)
+				player.cut_sheet(load_image(PlayerAnimations.MOVE), 8, 1)
 				player.animation = "moving"
 		else:
 			if not player.animation == "stay":
-				player.cut_sheet(load_image(STAY), 4, 1)
+				player.cut_sheet(load_image(PlayerAnimations.STAY), 4, 1)
 				player.animation = "stay"
 			
 	if (not player.alive and player.cur_frame <= 7 and not player.last_animation) or player.alive: # Огромная проверка на то, жив чел или нет
