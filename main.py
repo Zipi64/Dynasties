@@ -32,6 +32,12 @@ GAMEOVER = False
 # Риосвание заднего фона
 background_image = pygame.image.load('data/background/background.png')
 
+
+# Расположение анимаций монетки
+class CoinAnimation:
+	STAY = "data/coin/coin.png"
+
+
 # Расположение анимаций
 class PlayerAnimations:
 	STAY = "Player/Idle/Idle-Sheet.png"
@@ -179,6 +185,22 @@ class Button:
 			pygame.draw.rect(screen, self.inactive_color, (x, y, self.width, self.height))
 		
 		print_text(message=message, x=x + 10, y=y + 10, font_size=font_size)
+
+# Класс деньги
+class Coin(pygame.sprite.Sprite):
+	def __init__(self, x, y, height, width):
+		pygame.sprite.Sprite.__init__(self)
+		self.x = x
+		self.y = y
+		self.height = height
+		self.width = width
+		self.is_picked = False
+		self.image = pygame.image.load(CoinAnimation.STAY)
+		self.rect = self.image.get_rect()
+
+	def draw(self):
+		screen.blit(pygame.transform.flip(self.image, self.is_picked, False), self.rect)
+
 
 # Класс Димона
 class Mob(pygame.sprite.Sprite):
@@ -396,10 +418,10 @@ class Player(pygame.sprite.Sprite):
 			self.jump_count += 1
 
 
-
-# Создание игрока
 show_menu()
+# Создание игрока
 player = Player('Player', 20, 525, 5)
+coin = Coin(30, 600, 10, 5)
 pygame.mixer.music.load('data/audio/main.wav')
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 5000)
@@ -410,6 +432,7 @@ while running:
 	# Кнопка рандомная для теста
 	clock.tick(FPS) # Установка FPS
 	draw_background()
+	coin.draw()
 	player.draw() # Рисование персонажа
 	player.move(move_left, move_right)  # Передвижение персонажа
 	for event in pygame.event.get():
