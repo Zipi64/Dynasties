@@ -35,7 +35,7 @@ background_image = pygame.image.load('data/background/background.png')
 
 # Расположение анимаций монетки
 class CoinAnimation:
-	STAY = "data/coin/coin.png"
+	STAY = "coin/coin.png"
 
 
 # Расположение анимаций
@@ -115,6 +115,7 @@ def default_values():  # Дефолтные значения(обновляют�
 	pygame.mixer.music.set_volume(0.5)
 	pygame.mixer.music.play(-1, 0.0, 5000)
 	death_code = []
+	coins = [Coin(450, 540, 10, 5)]
 
 # Рисование заднего фона
 def draw_background():
@@ -195,11 +196,52 @@ class Coin(pygame.sprite.Sprite):
 		self.height = height
 		self.width = width
 		self.is_picked = False
-		self.image = pygame.image.load(CoinAnimation.STAY)
+		self.stay_animation()
+		#self.image = pygame.image.load(CoinAnimation.STAY)
 		self.rect = self.image.get_rect()
+		self.rect.center = (x , y)
+		self.hitbox = {
+			"top": (x - 10, y - 25),
+			"bottom": (x + 10, y + 25) 
+		}
 
 	def draw(self):
 		screen.blit(pygame.transform.flip(self.image, self.is_picked, False), self.rect)
+
+	def stay_animation(self):
+		self.animation = "stay"
+		self.cut_sheet(load_image(CoinAnimation.STAY), 5, 1)
+		self.image = self.frames[0]
+
+
+	def cut_sheet(self, sheet, columns, rows):
+		self.counter = 0
+		self.frames = []
+		self.temprect = pygame.Rect(0, 0, sheet.get_width() // columns, 
+                                sheet.get_height() // rows)
+		for j in range(rows):
+			for i in range(columns):
+				frame_location = (self.temprect.w * i, self.temprect.h * j)
+				self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.temprect.size)))
+		self.cur_frame = 0
+		self.image = self.frames[self.cur_frame]
+	
+	def take_coin(self):
+		return self.rect.colliderect(player.rect)
+	# Изменение анимации
+	def update(self):
+		timings = 5 # Определение, раз в сколько кадров анимация
+		if self.counter != timings:
+			self.counter += 1
+			return
+		self.counter = 0
+		self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+		self.image = self.frames[self.cur_frame]
+		if self.take_coin():
+			print(1)
+			coins.pop()
+
 
 
 # Класс Димона
@@ -216,7 +258,7 @@ class Mob(pygame.sprite.Sprite):
 		self.rotation = False
 		self.hitting = True
 		self.attack_range = {}
-		self.hitbocks = {}
+		self.hitbox = {}
 		self.rect = self.image.get_rect()
 		self.rect.center = (x, y)
 		self.alive = True
@@ -261,7 +303,7 @@ class Mob(pygame.sprite.Sprite):
 			"y1": y - 25,
 			"y2": y + 25
 		}
-		self.hitbocks = {
+		self.hitbox = {
 			"top": (x - 10, y - 25),
 			"bottom": (x + 10, y + 25) 
 		}
@@ -325,7 +367,7 @@ class Player(pygame.sprite.Sprite):
 			"y1": y - 25,
 			"y2": y + 25
 		}
-		self.hitbocks = {
+		self.hitbox = {
 			"top": (x - 10, y - 25),
 			"bottom": (x + 10, y + 25) 
 		}
@@ -374,7 +416,7 @@ class Player(pygame.sprite.Sprite):
 			"y1": y - 25,
 			"y2": y + 25
 		}
-		self.hitbocks = {
+		self.hitbox = {
 			"top": (x - 10, y - 25),
 			"bottom": (x + 10, y + 25) 
 		}
@@ -421,7 +463,7 @@ class Player(pygame.sprite.Sprite):
 show_menu()
 # Создание игрока
 player = Player('Player', 20, 525, 5)
-coin = Coin(30, 600, 10, 5)
+coins = [Coin(450, 540, 10, 5)]
 pygame.mixer.music.load('data/audio/main.wav')
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 5000)
@@ -432,7 +474,8 @@ while running:
 	# Кнопка рандомная для теста
 	clock.tick(FPS) # Установка FPS
 	draw_background()
-	coin.draw()
+	for coin in coins:
+		coin.draw()
 	player.draw() # Рисование персонажа
 	player.move(move_left, move_right)  # Передвижение персонажа
 	for event in pygame.event.get():
@@ -535,5 +578,7 @@ while running:
 			player.last_animation = True
 			game_over()
 		player.update()
+		for coin in coins:
+			coin.update()
 		pygame.display.update()
 pygame.quit()
